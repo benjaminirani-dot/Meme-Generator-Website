@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meme Generator - Instant & Free</title>
+  <meta name="description" content="Create viral memes instantly. No signup, no watermark, works offline." />
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Impact:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  
+  <style>
+    .impact { font-family: 'Impact', sans-serif; }
+    .bebas { font-family: 'Bebas Neue', cursive; }
+    .glass {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+    .text-stroke {
+      -webkit-text-stroke: 3px black;
+      text-stroke: 3px black;
+    }
+    .spinner {
+      border: 4px solid rgba(255,255,255,0.3);
+      border-left: 4px solid white;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .template-img {
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .template-img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-pink-800 to-red-800 text-white min-h-screen p-4">
+
+  <div class="max-w-5xl mx-auto">
+    <!-- Header -->
+    <header class="text-center mb-10">
+      <h1 class="text-6xl font-bold bebas bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-500 drop-shadow-lg">
+        MEME GENERATOR
+      </h1>
+      <p class="mt-3 text-xl opacity-90">Upload • Type • Download → Instant Meme</p>
+      <p class="text-sm opacity-70">No signup • No watermark • Works offline</p>
+    </header>
+
+    <div class="grid lg:grid-cols-2 gap-8">
+      <!-- Left: Editor -->
+      <div class="space-y-6">
+        <!-- Upload or Template -->
+        <div class="glass p-6 rounded-2xl">
+          <h3 class="text-lg font-bold mb-4">1. Choose Image</h3>
+          <div class="flex gap-2 mb-4">
+            <button id="tabUpload" class="flex-1 py-2 bg-white/20 rounded-lg font-bold hover:bg-white/30 transition">Upload</button>
+            <button id="tabTemplates" class="flex-1 py-2 bg-white/10 rounded-lg font-bold hover:bg-white/20 transition">Templates</button>
+          </div>
+
+          <!-- Upload Tab -->
+          <div id="uploadTab">
+            <input type="file" id="fileInput" accept="image/*" class="w-full p-4 rounded-xl bg-white/10 border border-white/30 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-white/20 file:text-white hover:file:bg-white/30" />
+            <p class="text-xs mt-2 opacity-70">JPG, PNG, GIF • Max 10MB</p>
+          </div>
+
+          <!-- Templates Tab -->
+          <div id="templatesTab" class="hidden grid grid-cols-3 gap-3 mt-4">
+            ${['distracted', 'drake', 'change-mind', 'success', 'spongebob', 'woman-yelling', 'cat', 'uno', 'this-is-fine'].map(name => `
+              <img src="https://i.imgur.com/${{
+                'distracted': 'cVLZ5cL.jpg',
+                'drake': '0d3TIXr.jpg',
+                'change-mind': '2k6l.jpg',
+                'success': '2FM0jL8.jpg',
+                'spongebob': '7xN0w0J.jpg',
+                'woman-yelling': 'xA8t3yB.jpg',
+                'cat': 'f3I6YkD.jpg',
+                'uno': 'w8T6j.jpg',
+                'this-is-fine': 'mI0GfXv.png'
+              }[name]}.jpg" 
+              alt="${name}" 
+              class="w-full h-24 object-cover rounded-lg cursor-pointer template-img"
+              data-img="https://i.imgur.com/${{
+                'distracted': 'cVLZ5cL.jpg',
+                'drake': '0d3TIXr.jpg',
+                'change-mind': '2k6l.jpg',
+                'success': '2FM0jL8.jpg',
+                'spongebob': '7xN0w0J.jpg',
+                'woman-yelling': 'xA8t3yB.jpg',
+                'cat': 'f3I6YkD.jpg',
+                'uno': 'w8T6j.jpg',
+                'this-is-fine': 'mI0GfXv.png'
+              }[name]}.jpg">
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Text Inputs -->
+        <div class="glass p-6 rounded-2xl">
+          <h3 class="text-lg font-bold mb-4">2. Add Text</h3>
+          <input type="text" id="topText" placeholder="TOP TEXT" class="w-full p-4 mb-3 rounded-xl bg-white/10 border border-white/30 text-center impact text-2xl font-bold placeholder-white/50" maxlength="50" />
+          <input type="text" id="bottomText" placeholder="BOTTOM TEXT" class="w-full p-4 rounded-xl bg-white/10 border border-white/30 text-center impact text-2xl font-bold placeholder-white/50" maxlength="50" />
+        </div>
+
+        <!-- Generate Button -->
+        <button id="generateBtn" class="w-full py-5 bg-gradient-to-r from-green-600 to-emerald-700 rounded-2xl font-bold text-xl hover:from-green-500 hover:to-emerald-600 transform hover:scale-105 transition shadow-xl disabled:opacity-50">
+          <span id="btnText">GENERATE MEME</span>
+          <div id="spinner" class="spinner hidden"></div>
+        </button>
+      </div>
+
+      <!-- Right: Preview & Download -->
+      <div class="space-y-6">
+        <!-- Preview -->
+        <div id="preview" class="glass p-6 rounded-2xl hidden">
+          <h3 class="text-xl font-bold mb-4 text-center text-yellow-400">Your Meme</h3>
+          <div class="relative bg-black/20 rounded-xl overflow-hidden">
+            <canvas id="memeCanvas" class="w-full"></canvas>
+          </div>
+          <button id="downloadBtn" class="mt-4 w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:from-purple-500 hover:to-pink-500 transition shadow-lg">
+            Download Meme
+          </button>
+        </div>
+
+        <!-- Instructions -->
+        <div class="glass p-6 rounded-2xl text-sm opacity-80">
+          <h4 class="font-bold text-yellow-300 mb-2">How to Use:</h4>
+          <ol class="list-decimal list-inside space-y-1">
+            <li>Upload your image or pick a template</li>
+            <li>Type top & bottom text</li>
+            <li>Click "Generate Meme"</li>
+            <li>Download & share!</li>
+          </ol>
+        </div>
+
+        <!-- Share -->
+        <div class="glass p-4 rounded-xl text-center text-xs">
+          Made with 💀 by <a href="https://github.com" class="underline hover:text-yellow-300">You</a> • <a href="#" id="shareX" class="underline hover:text-yellow-300">Share on X</a>
+        </div>
+      </div>
+    </div>
+
+    <footer class="text-center mt-12 text-xs opacity-60">
+      © 2025 Meme Generator • 100% Free • No Data Collected
+    </footer>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const fileInput = $('fileInput');
+    const topText = $('topText');
+    const bottomText = $('bottomText');
+    const generateBtn = $('generateBtn');
+    const preview = $('preview');
+    const canvas = $('memeCanvas');
+    const ctx = canvas.getContext('2d');
+    const downloadBtn = $('downloadBtn');
+    const btnText = $('btnText');
+    const spinner = $('spinner');
+    const tabUpload = $('tabUpload');
+    const tabTemplates = $('tabTemplates');
+    const uploadTab = $('uploadTab');
+    const templatesTab = $('templatesTab');
+    const shareX = $('shareX');
+
+    let currentImage = null;
+
+    // Tab switching
+    tabUpload.onclick = () => {
+      tabUpload.classList.add('bg-white/20'); tabUpload.classList.remove('bg-white/10');
+      tabTemplates.classList.add('bg-white/10'); tabTemplates.classList.remove('bg-white/20');
+      uploadTab.classList.remove('hidden');
+      templatesTab.classList.add('hidden');
+    };
+    tabTemplates.onclick = () => {
+      tabTemplates.classList.add('bg-white/20'); tabTemplates.classList.remove('bg-white/10');
+      tabUpload.classList.add('bg-white/10'); tabUpload.classList.remove('bg-white/20');
+      templatesTab.classList.remove('hidden');
+      uploadTab.classList.add('hidden');
+    };
+
+    // Load image
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = src;
+      });
+    }
+
+    // Draw meme
+    async function generateMeme() {
+      if (!currentImage) return alert('Upload an image first!');
+
+      // Show loading
+      btnText.classList.add('hidden');
+      spinner.classList.remove('hidden');
+      generateBtn.disabled = true;
+
+      canvas.width = currentImage.width;
+      canvas.height = currentImage.height;
+
+      // Draw image
+      ctx.drawImage(currentImage, 0, 0);
+
+      // Text settings
+      const fontSize = Math.max(40, canvas.width / 10);
+      ctx.font = `bold ${fontSize}px Impact, Arial`;
+      ctx.fillStyle = 'white';
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = fontSize / 12;
+      ctx.textAlign = 'center';
+      ctx.letterSpacing = '2px';
+
+      const top = topText.value.trim().toUpperCase();
+      const bottom = bottomText.value.trim().toUpperCase();
+
+      // Top text
+      if (top) {
+        wrapText(ctx, top, canvas.width / 2, fontSize * 1.5, canvas.width * 0.9, fontSize * 1.2);
+      }
+
+      // Bottom text
+      if (bottom) {
+        wrapText(ctx, bottom, canvas.width / 2, canvas.height - fontSize * 0.8, canvas.width * 0.9, fontSize * 1.2);
+      }
+
+      // Show result
+      preview.classList.remove('hidden');
+      downloadBtn.onclick = () => {
+        const link = document.createElement('a');
+        link.download = `meme-${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      };
+
+      // Share on X
+      shareX.onclick = (e) => {
+        e.preventDefault();
+        const text = encodeURIComponent(`${top} ${bottom ? '| ' + bottom : ''}`);
+        const url = canvas.toDataURL('image/png');
+        // Note: Direct image sharing needs backend. This opens X with text.
+        window.open(`https://x.com/intent/tweet?text=${text}&url=${encodeURIComponent(window.location.href)}`, '_blank');
+      };
+
+      btnText.classList.remove('hidden');
+      spinner.classList.add('hidden');
+      generateBtn.disabled = false;
+    }
+
+    // Wrap long text
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+      const words = text.split(' ');
+      let line = '';
+      let lines = [];
+
+      for (let word of words) {
+        const testLine = line + word + ' ';
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && line !== '') {
+          lines.push(line);
+          line = word + ' ';
+        } else {
+          line = testLine;
+        }
+      }
+      lines.push(line);
+
+      lines.forEach((l, i) => {
+        const lineY = y + (i - lines.length / 2) * lineHeight;
+        ctx.strokeText(l, x, lineY);
+        ctx.fillText(l, x, lineY);
+      });
+    }
+
+    // File upload
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      if (file.size > 10 * 1024 * 1024) return alert('Image too large! Max 10MB.');
+
+      currentImage = await loadImage(URL.createObjectURL(file));
+      generateBtn.disabled = false;
+    });
+
+    // Template click
+    document.querySelectorAll('.template-img').forEach(img => {
+      img.onclick = async () => {
+        currentImage = await loadImage(img.dataset.img);
+        generateBtn.disabled = false;
+        // Highlight
+        document.querySelectorAll('.template-img').forEach(i => i.style.outline = 'none');
+        img.style.outline = '4px solid #FBBF24';
+      };
+    });
+
+    // Generate on button or Enter
+    generateBtn.onclick = generateMeme;
+    [topText, bottomText].forEach(input => {
+      input.addEventListener('keypress', e => {
+        if (e.key === 'Enter') generateMeme();
+      });
+    });
+
+    // Auto-generate on text change (after image)
+    [topText, bottomText].forEach(input => {
+      input.addEventListener('input', () => {
+        if (currentImage && !generateBtn.disabled) {
+          setTimeout(generateMeme, 500);
+        }
+      });
+    });
+
+    // Init
+    tabTemplates.click();
+  </script>
+</body>
+</html>
